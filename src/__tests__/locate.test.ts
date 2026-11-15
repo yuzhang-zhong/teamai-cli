@@ -430,6 +430,13 @@ describe('an instance of Codex under the Codex root the member recorded (toolRoo
 
     expect(await placeOf('acme-codex', 'skills')).toBe('/home/m/.codex-work/skills');
     expect(await placeOf('acme-codex', 'hooks')).toBe(await placeOf('codex', 'hooks'));
+    for (const tool of ['codex', 'acme-codex']) {
+      const skills = await locate(tool, 'skills', install, host);
+
+      if (skills.reads === 'unknown') throw new Error('Codex skill reads are known');
+      expect(skills.reads.map((read) => read.path)).toEqual(['/home/m/.codex-work/skills', '/home/m/.agents/skills']);
+      expect(unreadWrites(skills, host)).toEqual([]);
+    }
   });
 
   it.each([

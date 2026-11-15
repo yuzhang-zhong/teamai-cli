@@ -3512,7 +3512,7 @@ export function applyToolRoots(
  * The roots a recorded root of `tool` (a `toolRoots` key) moves: every root its paths in `toolPaths` hang off, and its
  * default root, which a team that moved its paths may still name in an instance's own paths.
  */
-function relocationRootsOf(tool: string, toolPaths: Record<string, z.infer<typeof ToolPathsSchema>>): Set<string> {
+export function relocationRootsOf(tool: string, toolPaths: Record<string, z.infer<typeof ToolPathsSchema>>): Set<string> {
   const resolved = toolOf(tool);
   // An instance's own key is its own home's, which has no default root.
   const shipped = resolved === undefined || resolved.instance?.kind === 'instance' ? undefined : DEFAULT_TOOL_PATHS[resolved.base];

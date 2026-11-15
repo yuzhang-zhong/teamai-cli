@@ -14,11 +14,11 @@ import { MCP_SERVER_KEY } from './resources/mcp-format.js';
 import { SESSION_PLATFORM_FACTS, type SessionPlatform, type StoredSessionPlatform } from './session-flow/adapters/platform-facts.js';
 import { TOOLS, type ToolId } from './tools.js';
 import { type Activation, type BlocksFile, type BlocksHeader, type ChannelProbe, type FirstExistingRead, type HomeRead, type HookAdapter, type HookAdapterId, type HookFormat, type HookSettings, type McpProject, type McpUser, type ProjectRead, type ReadGateKind, type RunTime, type SkillReads, type RunTimeVia } from '@teamai/tool-core/definition';
-import { baseToolOf, channelsOf, installGateOf, isToolId, hasDefaultHomeLeftovers, mcpScopeFor, toolOf } from './tool-registry.js';
+import { baseToolOf, channelsOf, installGateOf, isToolId, hasDefaultHomeLeftovers, mcpScopeFor, toolOf, toolRootsKeyOf } from './tool-registry.js';
 import { instanceReadPath } from './tool-instances.js';
 import {
   CODEX_TOOL_ID, CURSOR_CONFIG_TOOL_ID, CURSOR_DATA_TOOL_ID,
-  DEFAULT_TOOL_PATHS, isAgentExcluded, isGitExcludeEnabled, isSelfMode, recordedToolHomeDir, resolveBaseDir, scopedToolPaths, toolGateRoot,
+  DEFAULT_TOOL_PATHS, isAgentExcluded, isGitExcludeEnabled, isSelfMode, recordedToolHomeDir, relocationRootsOf, resolveBaseDir, scopedToolPaths, toolGateRoot, toolInstallRoot,
   workbuddyLaunchedFrom,
   WORKBUDDY_AI_ROOT, WORKBUDDY_LIVE_ROOT_LEAVES, WORKBUDDY_TOOL_ID, WORKBUDDY_TOOL_ROOT,
   type HomePaths, type LocalConfig, type Scope, type TeamaiConfig,
@@ -615,8 +615,11 @@ function rootsOf(tool: string, install: Install, host: Host): Roots {
   const home = toolHomeOf(tool, host);
   const underHome = (relative: string): string => underToolHome(tool, relative, host);
 
-  const relocated = (relative: string): string =>
-    scopedToolPaths({ toolPaths: { [tool]: { skills: relative } } }, { scope: 'user', toolRoots: install.toolRoots }, at)[tool]?.skills ?? relative;
+  const relocated = (relative: string): string => {
+    if (relative.includes('/') && !relocationRootsOf(toolRootsKeyOf(tool), install.toolPaths).has(toolInstallRoot(relative))) return relative;
+
+    return scopedToolPaths({ toolPaths: { [tool]: { skills: relative } } }, { scope: 'user', toolRoots: install.toolRoots }, at)[tool]?.skills ?? relative;
+  };
 
   // WorkBuddy's live data root, resolved through `Host` rather than `fs`, so
   // `locate` answers about the machine it is inspecting. `scopedToolPaths`
